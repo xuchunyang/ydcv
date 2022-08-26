@@ -1,0 +1,22 @@
+{
+    "name": "xuchunyang/ydcv",
+    "description": "YouDao Console Version",
+    "license": "GPL-3.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Xuchunyang\\Ydcv\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Xu Chunyang",
+            "email": "xuchunyang56@gmail.com"
+        }
+    ],
+    "bin": [
+        "bin/ydcv"
+    ],
+    "require": {
+        "symfony/http-client": "^6.1"
+    }
+}
