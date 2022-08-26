@@ -59,11 +59,10 @@ if (array_key_exists('basic', $data)) {
     foreach ($data['basic']['explains'] as $explain) {
         printf('- %s' . PHP_EOL, $explain);
     }
-    echo PHP_EOL;
 } else {
     printf("%s" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset']);
-    echo PHP_EOL;
 }
+echo PHP_EOL;
 
 if (array_key_exists('web', $data)) {
 
