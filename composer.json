@@ -17,6 +17,7 @@
         "bin/ydcv"
     ],
     "require": {
+        "php": ">=8.1",
         "symfony/http-client": "^6.1"
     }
 }
