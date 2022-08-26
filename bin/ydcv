@@ -51,17 +51,25 @@ $colors = [
     'bold' => "\u{001b}[1m",
 ];
 
-printf("%s [%s]" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset'], $data['basic']['phonetic']);
-echo PHP_EOL;
+if (array_key_exists('basic', $data)) {
+    printf("%s [%s]" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset'], $data['basic']['phonetic']);
+    echo PHP_EOL;
 
-printf($colors['blue'] . $colors['bold'] . "* Basic Explains" . $colors['reset'] . PHP_EOL);
-foreach ($data['basic']['explains'] as $explain) {
-    printf('- %s' . PHP_EOL, $explain);
+    printf($colors['blue'] . $colors['bold'] . "* Basic Explains" . $colors['reset'] . PHP_EOL);
+    foreach ($data['basic']['explains'] as $explain) {
+        printf('- %s' . PHP_EOL, $explain);
+    }
+    echo PHP_EOL;
+} else {
+    printf("%s" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset']);
+    echo PHP_EOL;
 }
-echo PHP_EOL;
 
-printf($colors['blue'] . $colors['bold'] . "* Web References" . $colors['reset'] . PHP_EOL);
-foreach ($data['web'] as $web) {
-    printf("- %s %s::%s %s" . PHP_EOL, $colors['bold'], $web['key'], $colors['reset'], implode(';', $web['value']));
+if (array_key_exists('web', $data)) {
+
+    printf($colors['blue'] . $colors['bold'] . "* Web References" . $colors['reset'] . PHP_EOL);
+    foreach ($data['web'] as $web) {
+        printf("- %s %s::%s %s" . PHP_EOL, $colors['bold'], $web['key'], $colors['reset'], implode(';', $web['value']));
+    }
+    echo PHP_EOL;
 }
-echo PHP_EOL;
