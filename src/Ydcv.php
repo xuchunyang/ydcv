@@ -47,7 +47,11 @@ class Ydcv
         ];
 
         if (array_key_exists('basic', $data)) {
-            printf("%s [%s]" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset'], $data['basic']['phonetic']);
+            if (array_key_exists('phonetic', $data['basic'])) {
+                printf("%s [%s]" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset'], $data['basic']['phonetic']);
+            } else {
+                printf("%s" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset']);
+            }
             echo PHP_EOL;
 
             printf($colors['blue'] . $colors['bold'] . "* Basic Explains" . $colors['reset'] . PHP_EOL);
@@ -63,7 +67,7 @@ class Ydcv
 
             printf($colors['blue'] . $colors['bold'] . "* Web References" . $colors['reset'] . PHP_EOL);
             foreach ($data['web'] as $web) {
-                printf("- %s %s::%s %s" . PHP_EOL, $colors['bold'], $web['key'], $colors['reset'], implode(';', $web['value']));
+                printf("- %s %s::%s %s" . PHP_EOL, $colors['bold'], $web['key'], $colors['reset'], implode('; ', $web['value']));
             }
             echo PHP_EOL;
         }
