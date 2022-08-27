@@ -3,16 +3,18 @@
 namespace Xuchunyang\Ydcv;
 
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpClient\RetryableHttpClient;
 
 class Ydcv
 {
     public static function query($word): void
     {
-        $client = HttpClient::create();
+        $client = new RetryableHttpClient(HttpClient::create());
         $response = $client->request(
             method: 'GET',
             url: 'http://fanyi.youdao.com/openapi.do',
             options: [
+                'timeout' => 2.0,
                 'query' => [
                     'keyfrom' => 'YouDaoCV',
                     'key' => '659600698',
