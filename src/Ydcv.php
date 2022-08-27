@@ -4,41 +4,75 @@ namespace Xuchunyang\Ydcv;
 
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpClient\RetryableHttpClient;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class Ydcv
 {
-    public static function query($word): void
+    public static function query(string $word): array
     {
+        if (!$word) {
+            throw new \Exception("Word cannot be empty");
+        }
+
         $client = new RetryableHttpClient(HttpClient::create());
-        $response = $client->request(
-            method: 'GET',
-            url: 'http://fanyi.youdao.com/openapi.do',
-            options: [
-                'timeout' => 2.0,
-                'query' => [
-                    'keyfrom' => 'YouDaoCV',
-                    'key' => '659600698',
-                    'type' => 'data',
-                    'doctype' => 'json',
-                    'version' => '1.1',
-                    'q' => $word,
+        try {
+            $response = $client->request(
+                method: 'GET',
+                url: 'http://fanyi.youdao.com/openapi.do',
+                options: [
+                    'timeout' => 2.0,
+                    'query' => [
+                        'keyfrom' => 'YouDaoCV',
+                        'key' => '659600698',
+                        'type' => 'data',
+                        'doctype' => 'json',
+                        'version' => '1.1',
+                        'q' => $word,
+                    ],
                 ],
-            ],
-        );
+            );
+        } catch (TransportExceptionInterface $e) {
+            throw new \Exception($e->getMessage());
+        }
 
         if ($response->getStatusCode() !== 200) {
-            fprintf(STDERR, "HTTP Status Code: %d" . PHP_EOL, $response->getStatusCode());
-            fprintf(STDERR, "Headers:" . PHP_EOL);
-            fwrite(STDERR, print_r($response->getHeaders(), return: true) . PHP_EOL);
-            if ($response->getContent() !== '') {
-                fprintf(STDERR, "Body:" . PHP_EOL);
-                fwrite(STDERR, $response->getContent() . PHP_EOL);
-            }
-
-            exit(1);
+            throw new \Exception('HTTP is not ok, the status code is ' . $response->getStatusCode());
         }
 
         $data = $response->toArray();
+
+        $result = [
+            'query' => $data['query'],
+            'phonetic' => null,
+            'explains' => null,
+            'webs' => null,
+        ];
+
+        if (array_key_exists('basic', $data)) {
+            if (array_key_exists('phonetic', $data['basic'])) {
+                $result['phonetic'] = $data['basic']['phonetic'];
+            }
+
+            if (array_key_exists('explains', $data['basic'])) {
+                $result['explains'] = $data['basic']['explains'];
+            }
+        }
+
+        if (array_key_exists('web', $data)) {
+            $result['webs'] = array_map(function ($web) {
+                return [
+                    'term' => $web['key'],
+                    'definitions' => $web['value'],
+                ];
+            }, $data['web']);
+        }
+
+        return $result;
+    }
+
+    public static function print($word): void
+    {
+        $result = self::query($word);
 
         $colors = [
             'reset' => "\u{001b}[0m",
@@ -46,30 +80,28 @@ class Ydcv
             'bold' => "\u{001b}[1m",
         ];
 
-        if (array_key_exists('basic', $data)) {
-            if (array_key_exists('phonetic', $data['basic'])) {
-                printf("%s [%s]" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset'], $data['basic']['phonetic']);
-            } else {
-                printf("%s" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset']);
-            }
-            echo PHP_EOL;
-
-            printf($colors['blue'] . $colors['bold'] . "* Basic Explains" . $colors['reset'] . PHP_EOL);
-            foreach ($data['basic']['explains'] as $explain) {
-                printf('- %s' . PHP_EOL, $explain);
-            }
+        if ($result['phonetic']) {
+            printf("%s [%s]\n\n", $result['query'], $result['phonetic']);
         } else {
-            printf("%s" . PHP_EOL, $colors['bold'] . $data['query'] . $colors['reset']);
+            printf("%s\n\n", $result['query']);
         }
-        echo PHP_EOL;
 
-        if (array_key_exists('web', $data)) {
-
-            printf($colors['blue'] . $colors['bold'] . "* Web References" . $colors['reset'] . PHP_EOL);
-            foreach ($data['web'] as $web) {
-                printf("- %s %s::%s %s" . PHP_EOL, $colors['bold'], $web['key'], $colors['reset'], implode('; ', $web['value']));
+        if ($result['explains']) {
+            printf("%s\n", $colors['blue'] . $colors['bold'] . "* Basic Explains" . $colors['reset']);
+            foreach ($result['explains'] as $explain) {
+                printf("- %s\n", $explain);
             }
-            echo PHP_EOL;
+            printf("\n");
+        }
+
+        if ($result['webs']) {
+            printf("%s\n", $colors['blue'] . $colors['bold'] . "* Web References" . $colors['reset']);
+            foreach ($result['webs'] as $web) {
+                printf("- %s%s\n",
+                    $colors['bold'] . $web['term'] . ' :: ' . $colors['reset'],
+                    implode('; ', $web['definitions']));
+            }
+            printf("\n");
         }
     }
 }
