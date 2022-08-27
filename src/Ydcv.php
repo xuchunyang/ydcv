@@ -10,6 +10,7 @@ class Ydcv
 {
     public static function query(string $word): array
     {
+        // TODO PHP 里究竟怎么使用 Exception 还是不懂，找机会看看 Modern PHP
         if (!$word) {
             throw new \Exception("Word cannot be empty");
         }
